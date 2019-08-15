@@ -1,0 +1,52 @@
+---
+title: "Financial simulation of retirement corpus"
+author: "Aninda Goswamy"
+date: "8/15/2019"
+output: html_document
+---
+## R Markdown
+
+This is an R Markdown document for illustrating the amount of retirement corpus that would be available by simulating returns and savings. 
+
+First the investment horizon is assumed for a period of 30 years.
+
+Here we see the various returns expected from a normal distributed process with mean = 8% and standard deviation = 10%
+
+```{r}
+library(ggplot2)
+set.seed(1234)
+rate<-rnorm(30,0.08,0.1)
+rate<-data.frame(rate)
+ggplot(rate,aes(rate))+geom_histogram()
+```
+
+Now if assume the monthly contribution to be 40000, then the annual contribution is 40000*12 = 480000
+
+The way to calculate the final corpus is easily done using the cumprod function that R provides.
+
+```{r}
+PMT=40000*12
+CORPUS<-sum(PMT*cumprod(rev(1+rate$rate)))
+print(paste("The final corpus is: ",CORPUS))
+```
+
+We can also now simulate the final corpus for 1000 iterations and plot its distribution
+```{r}
+calc_corpus<-function()
+{
+  rate<-rnorm(30,0.08,0.1)
+  PMT=40000*12
+  CORPUS<-sum(PMT*cumprod(rev(1+rate)))
+  return(CORPUS)
+}
+
+retirement_corpus<-rep(0,1000)
+for (value in seq(1:1000))
+{
+  retirement_corpus[value]<-calc_corpus()
+}
+
+print(paste("Length of simulation is:",length(retirement_corpus)))
+ggplot(data.frame(retirement_corpus),aes(retirement_corpus))+geom_histogram()
+
+```
